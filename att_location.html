@@ -1,0 +1,115 @@
+<!DOCTYPE html> 
+<html> 
+    <head> 
+    <title>AT&amp;T Location Example</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.css" />
+    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
+    
+    <script src="service.viafo.js"></script>
+    <script>
+/*global $, ViafoService, confirm */
+
+//
+// Change these values to match your Viafo settings
+//
+
+var VIAFO_SETTINGS = { 
+    'ENDPOINT' : 'https://vsg-live.appspot.com/client/1/', 
+
+    'CLIENT_ID' : 'rUQxzkGvGdeWLoinPWBMhVxqFu28WdIk', 
+    'CLIENT_SECRET' : 'YNSiYxlGKQLHDgMmAj7b9L4ZhrchR9po', 
+    
+    // Define a custom scope
+    'SCOPES' : {
+       // AT&T scopes: Terminal Location (TL), In App Messaging from Mobile Number (IMMN),
+       // Device Capabilities (DC)
+       'att' : 'TL'
+    }
+};
+
+// Initialize the Viafo Service when the DOM is ready. 
+$(document).ready(function() {
+    ViafoService.Init();
+});
+
+$(document).on('pageinit', '#start', function () {
+    
+	// Helper functions to show some UI
+	function AskUserToConfirmCb(service, callback) {
+        if (confirm("You need to sign into " + service.display_name + " first, do it now?")) {
+            callback();
+        }
+    }
+    
+    function SuccessHandlerCb(data, result, xhr) {
+        $.mobile.hidePageLoadingMsg();
+        alert("Success");
+        console.log(data);
+        $('#response').html('<pre>' + JSON.stringify(data, null, '  ') + '</pre>');
+    }
+    
+    function FailureHandlerCb(xhr, result, msg) {
+        $.mobile.hidePageLoadingMsg();
+        if (xhr.responseText) {
+            alert("Failure");
+            var data = $.parseJSON(xhr.responseText);
+            $('#response').html('<pre>' + JSON.stringify(data, null, '  ') + '</pre>');
+        } else {
+            alert("Failed");
+        }
+    }
+	
+	// Capture submit button click
+	$('#location-form').submit(function () {
+		
+		var params = {
+	        'requestedAccuracy' : $('#accuracy').val()
+	    };
+
+        // The API location API endpoint is: https://api.att.com/2/devices/location
+		ViafoService.CallProxy(
+			'att',                 // att - use AT&T authentication 
+			'api.att.com',         // the domain for the endpoint
+			'/2/devices/location', // the path for the endpoint
+			'get',                 // HTTP method is GET
+			params,                // request parameters
+			SuccessHandlerCb,      // Callbacks for UI
+			FailureHandlerCb,
+			AskUserToConfirmCb
+		);
+		return false;
+	});
+	
+});
+
+    </script>
+    </head>
+<body> 
+
+<div id="start" data-role="page">
+
+    <div data-role="header" data-position="fixed">
+        <h1>AT&amp;T Location</h1>
+    </div><!-- /header -->
+    <div data-role="content">
+        <div>
+        	<h3>AT&amp;T Location</h3>
+            <form id="location-form">
+                <fieldset>
+                    <label for="accuracy">Enter accuracy:</label>
+                    <input type="text" name="accuracy" id="accuracy" value="10000" placeholder="e.g.: 10000" />
+                </fieldset>
+                <button type="submit" data-theme="a" data-inline="true">Get Location</button>
+            </form>
+        </div>
+
+        <div id="response">
+        </div>
+    </div><!-- /content -->
+
+</div><!-- /page -->
+
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html culture=en>
+<head>
+ <meta charset=="utf-8" />
+ <title>Mobile Assistant</title>
+  <script src="./jquery.min.js"></script>
+  <script src="service.viafo.js"></script>
+  <script type="text/javascript" src="./WCGapi_apigee.js"></script>   
+
+
+      <script>
+/*global $, ViafoService, confirm */
+
+//
+// Change these values to match your Viafo settings
+//
+
+var VIAFO_SETTINGS = { 
+    'ENDPOINT' : 'https://vsg-live.appspot.com/client/1/', 
+
+    'CLIENT_ID' : 'rUQxzkGvGdeWLoinPWBMhVxqFu28WdIk', 
+    'CLIENT_SECRET' : 'YNSiYxlGKQLHDgMmAj7b9L4ZhrchR9po', 
+    
+    // Define a custom scope
+    'SCOPES' : {
+       // AT&T scopes: Terminal Location (TL), In App Messaging from Mobile Number (IMMN),
+       // Device Capabilities (DC)
+       'att' : 'TL'
+    }
+};
+
+// Initialize the Viafo Service when the DOM is ready. 
+$(document).ready(function() {
+    ViafoService.Init();
+    
+	// Helper functions to show some UI
+	function AskUserToConfirmCb(service, callback) {
+        if (confirm("You need to sign into " + service.display_name + " first, do it now?")) {
+            callback();
+        }
+    }
+    
+    function SuccessHandlerCb(data, result, xhr) {
+  
+        alert("Success");
+        console.log(data);
+
+        $('#Req1').text("lat: "+data.latitude+", long:"+data.longitude)
+//        data.longitude
+//        alert(data.latitude);
+    }
+    
+    function FailureHandlerCb(xhr, result, msg) {
+        
+        if (xhr.responseText) {
+            alert("Failure");
+            var data = $.parseJSON(xhr.responseText);
+            $('#response').html('<pre>' + JSON.stringify(data, null, '  ') + '</pre>');
+        } else {
+            alert("Failed");
+        }
+    }
+
+    $(document).on("com.viafo.ready", function() {
+	// Capture submit button click
+		var params = {
+	        'requestedAccuracy' : 10000
+	    };
+
+        // The API location API endpoint is: https://api.att.com/2/devices/location
+		ViafoService.CallProxy(
+			'att',                 // att - use AT&T authentication 
+			'api.att.com',         // the domain for the endpoint
+			'/2/devices/location', // the path for the endpoint
+			'get',                 // HTTP method is GET
+			params,                // request parameters
+			SuccessHandlerCb,      // Callbacks for UI
+			FailureHandlerCb,
+			AskUserToConfirmCb
+		);
+	});
+});
+
+    </script>
+
+</head> 
+
+
+
+<body>
+<script type="text/javascript">
+$(document).ready(
+	function(){
+		//sample value
+		
+// $.ajax({ 
+//         				type: "GET", 
+// 					Host: "https://api.att.com",                                
+//         				uri: "https://api.att.com/2/devices/?location&Authorization='Bearer 5b6d08b3430e2b038a7ba1ef6660e570'",        
+//         				dataType: 'json', 			
+//         				success: function(data){ 
+//      						//$('#Req1').val(data.html);	
+//      						alert(data)
+//      						console.log(arguments)
+//      						//issue need variable name to access the longitude, latitude data
+//      						//alert(data);
+//         				} ,
+//         				error:function (xhr, ajaxOptions, thrownError) {
+//             				alert(xhr.status);
+//             				alert(thrownError);
+//         				}
+// 				});
+
+
+		function phone()
+		{
+			calling.onclick()
+		}
+
+		$('input.phone').click(function(){
+
+		})
+		//$('#Destination').val('address');
+
+	//	var dest = $('#Destination').val();
+		$('input.notname').click(function(){
+		var identifier = "#"+$(this).attr('id');
+			if(identifier.search('#Des1')>=0)
+			{
+				var smsString = "Address=tel:"+ $(identifier).parent().parent().data('phone') + "Message:"+ $("#Destination").val();			
+				alert('dfggdd');
+ 				$.ajax({ 
+        				type: "POST", 
+					Host: "api.att.com",                                
+        				url: "https://api.att.com/rest/sms/2/messaging/outbox", 
+        				data: smsString , 
+        				dataType: "json", 
+					Authorization: 'Bearer 2971099bdfc5228a0adbeb585a552884',	  
+        				success: function(data){      
+					alert('Success');
+        				} ,
+        				error:function (xhr, ajaxOptions, thrownError) {
+        					alert(smsString);
+            				alert(xhr.status);
+            				alert(thrownError);
+        				}
+				});
+			    
+
+			
+			   	//placeholder for destination from phonenumber
+		    }
+		 //   else if(identifier.search('#Req')>=0)
+		 //   {
+		    	//placeholder for request location
+		   // 	alert("request location");
+		  //  }
+		});
+
+		$('input.conf').click(function(){
+		    	alert('Conferencing'+" "+$(this).attr('name'));
+		});	
+});
+</script>
+
+<header>
+<h1>Att App Demo</h1>
+<h2>FamilySafe</h2>
+
+</header>
+<article>
+
+<table border="1"  >
+<td width="20%">Destination Adress</td> <td><input type="text" id="Destination"  width="80%"/></td>
+<td><input id="btnGo" type = "Submit" value="Go" Text="Send" />
+<input id="btnErase" type = "Submit" value="Erase" Text="Send" />
+<input id="btnRefresh" type = "Submit" value="Refresh Location" Text="Send" />
+</td>
+
+</table>
+
+<table  border="1" width="100%">
+<thead><th>Name</th>
+	<th>Request Location</th>
+	<th>Share Destination</th>
+	<th>Conference</th></thead>
+<tr id="row1" data-phone="8155469923">
+	<td ><input class="phone" type="Submit" value= "Friend" Text="Send"></input></td>
+	<td><label id="Req1"    /></td>
+	<td><input class="notname" id="Des1" type = "Submit" value="OK" Text="Send" /></td>
+	
+	<td></td>
+</tr>
+
+<tr data-phone="243-222-8888">
+<td><input class="phone" type="Submit" value= "Spouse" Text="Send"></input></td>
+<td><label id="Req2"    /></td>
+<td><input class="notname" id="Des2" type = "Submit" value="OK" Text="Send" /></td>
+<td><input class="conf" type="Submit" name="Person2" value="Conf"></td>
+</tr>
+
+<tr data-phone="343-222-8888">
+<td><input class="phone" type="Submit" value= "Son" Text="Send"></input></td>
+<td><label id="Req3"    /></td>
+<td><input class="notname" id="Des3" type = "Submit" value="OK" Text="Send" /></td>
+<td><input class="conf" type="Submit" name="Person3" value="Conf"></td>
+</tr>
+
+<tr data-phone="443-222-8888">
+<td><input class="phone" type="Submit" value= "Daughter" Text="Send"></input></td>
+<td><label id="Req4"    /></td>
+<td><input class="notname" id="Des4" type = "Submit" Text="Send" value="OK" /></td>
+<td><input class="conf" type="Submit" name="Person4" value="Conf"></td>
+</tr>
+
+</table>
+
+
+
+</article>
+
+</body>
+</html>
